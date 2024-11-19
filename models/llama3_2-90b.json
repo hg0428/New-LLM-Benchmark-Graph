@@ -1,0 +1,48 @@
+{
+    "model_name": "LLaMA-3.2-90B",
+    "model_family": "llama3.2",
+    "architecture": "MllamaForConditionalGeneration",
+    "vision": true,
+    "inputs": [
+        "text",
+        "image"
+    ],
+    "outputs": [
+        "text"
+    ],
+    "parameters": {
+        "total_params": 88600000000,
+        "embedding_size": 8192,
+        "layers": 100,
+        "hidden_size": 8192,
+        "intermediate_size": 28672,
+        "attention_heads": 64,
+        "head_dimensions": 128,
+        "vocab_size": 128256
+    },
+    "benchmarks": {
+        "MMMU": 60.3,
+        "MMMU-Pro": 66.4,
+        "MMMU-Pro Vision": 33.8,
+        "MathVista": 57.3,
+        "ChartQA": 85.5,
+        "AI2 Diagram": 92.3,
+        "DocVQA": 90.1,
+        "VQAv2": 78.1,
+        "MMLU": 86.0,
+        "MATH": 68.0,
+        "GPQA": 46.7,
+        "MGSM": 86.9,
+        "IFEval": 87.5,
+        "HumanEval": 80.5,
+        "MBPP EvalPlus": 86.0,
+        "GSM8K": 95.1,
+        "ARC Challenge": 94.8,
+        "BFCL": 84.8,
+        "Nexus": 56.7,
+        "ZeroSCROLLS/QuALITY": 90.5,
+        "InfiniteBench/En.MC": 78.2,
+        "NIH/Multi-needle": 97.5,
+        "Multilingual MGSM": 86.9
+    }
+}

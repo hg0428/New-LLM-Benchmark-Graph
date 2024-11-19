@@ -1,0 +1,32 @@
+{
+    "model_name": "Smollm2-135M",
+    "model_family": "smollm2",
+    "architecture": "LlamaForCausalLM",
+    "vision": false,
+    "inputs": [
+        "text"
+    ],
+    "outputs": [
+        "text"
+    ],
+    "parameters": {
+        "total_params": 135000000,
+        "embedding_size": 576,
+        "layers": 30,
+        "hidden_size": 576,
+        "intermediate_size": 1536,
+        "attention_heads": 9,
+        "head_dimensions": 64,
+        "vocab_size": 49152
+    },
+    "benchmarks": {
+        "IFEval": 29.9,
+        "MT-Bench": 1.98,
+        "HellaSwag": 40.9,
+        "ARC Average": 37.3,
+        "PIQA": 66.3,
+        "MMLU": 29.3,
+        "BBH": 28.2,
+        "GSM8K": 1.4
+    }
+}

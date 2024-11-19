@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Model Benchmark Visualization</title>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				background-color: #f5f5f5;
+			}
+			.container {
+				max-width: 1200px;
+				margin: 0 auto;
+				background-color: white;
+				padding: 20px;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			}
+			.controls {
+				display: flex;
+				gap: 20px;
+				margin-bottom: 20px;
+				flex-wrap: wrap;
+			}
+			.control-group {
+				flex: 1;
+				min-width: 200px;
+			}
+			.scale-controls {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+				margin-top: 10px;
+			}
+			.scale-controls input[type="number"] {
+				width: 60px;
+				padding: 4px;
+				border-radius: 4px;
+				border: 1px solid #ddd;
+			}
+			.scale-controls input[type="radio"] {
+				margin: 0;
+			}
+			select {
+				width: 100%;
+				padding: 8px;
+				border-radius: 4px;
+				border: 1px solid #ddd;
+			}
+			label {
+				display: block;
+				margin-bottom: 5px;
+				font-weight: bold;
+			}
+			.radio-label {
+				font-weight: normal;
+				margin: 0;
+				display: inline;
+			}
+			#plot {
+				width: 100%;
+				height: 600px;
+			}
+			.base-input {
+				display: none;
+			}
+			.base-input.visible {
+				display: inline-block;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Model Benchmark Visualization</h1>
+			<div class="controls">
+				<div class="control-group">
+					<label for="x-axis">X-Axis:</label>
+					<select id="x-axis"></select>
+					<div class="scale-controls">
+						<span>Scale:</span>
+						<input type="radio" name="x-scale" value="linear" id="x-linear">
+						<label class="radio-label" for="x-linear">Linear</label>
+						<input type="radio" name="x-scale" value="log" id="x-log" checked>
+						<label class="radio-label" for="x-log">Log</label>
+						<input type="number" id="x-base" class="base-input visible" value="10" min="2" step="any">
+						<label class="radio-label" for="x-base">Base</label>
+					</div>
+				</div>
+				<div class="control-group">
+					<label for="y-axis">Y-Axis:</label>
+					<select id="y-axis"></select>
+					<div class="scale-controls">
+						<span>Scale:</span>
+						<input type="radio" name="y-scale" value="linear" id="y-linear" checked>
+						<label class="radio-label" for="y-linear">Linear</label>
+						<input type="radio" name="y-scale" value="log" id="y-log">
+						<label class="radio-label" for="y-log">Log</label>
+						<input type="number" id="y-base" class="base-input" value="10" min="2" step="any">
+						<label class="radio-label" for="y-base">Base</label>
+					</div>
+				</div>
+			</div>
+			<div id="plot"></div>
+		</div>
+
+		<script>
+			function getNestedValue(obj, path) {
+				const parts = path.split(".");
+				const section = parts[0];
+				const key = parts[1];
+				
+				if (section === "benchmarks") {
+					// Find the matching benchmark key ignoring case and separators
+					const normalizedKey = key.toLowerCase().replace(/[-_\s]+/g, '');
+					const benchmarkKey = Object.keys(obj[section]).find(k => 
+						k.toLowerCase().replace(/[-_\s]+/g, '') === normalizedKey
+					);
+					return obj[section][benchmarkKey];
+				}
+				
+				return parts.reduce((acc, part) => acc && acc[part], obj);
+			}
+
+            function populateAxisOptions() {
+                $.getJSON("/api/models", function(data) {
+                    const xAxis = $("#x-axis");
+                    const yAxis = $("#y-axis");
+                    
+                    // Clear existing options
+                    xAxis.empty();
+                    yAxis.empty();
+                    
+                    // Get all unique parameter and benchmark keys
+                    const parameters = new Set();
+                    const benchmarks = new Set();
+                    
+                    data.forEach(model => {
+                        // Add parameters
+                        if (model.parameters) {
+                            Object.keys(model.parameters).forEach(param => parameters.add(param));
+                        }
+                        // Add benchmarks
+                        if (model.benchmarks) {
+                            Object.keys(model.benchmarks).forEach(benchmark => benchmarks.add(benchmark));
+                        }
+                    });
+                    
+                    // Add parameter options to x-axis
+                    Array.from(parameters).sort().forEach(param => {
+                        xAxis.append(
+                            $("<option>", {
+                                value: `parameters.${param}`,
+                                text: param.replace(/_/g, " ").toUpperCase()
+                            })
+                        );
+                    });
+                    
+                    // Add benchmark options to y-axis
+                    Array.from(benchmarks).sort().forEach(benchmark => {
+                        yAxis.append(
+                            $("<option>", {
+                                value: `benchmarks.${benchmark}`,
+                                text: benchmark
+                            })
+                        );
+                    });
+                    
+                    // Select default options if available
+                    if (parameters.has("total_params")) {
+                        xAxis.val("parameters.total_params");
+                    }
+                    if (benchmarks.has("MMLU")) {
+                        yAxis.val("benchmarks.MMLU");
+                    }
+                    
+                    // Trigger initial plot
+                    updatePlot();
+                });
+            }
+
+			function updatePlot() {
+				$.getJSON("/api/models", function (data) {
+					const xAxis = $("#x-axis").val();
+					const yAxis = $("#y-axis").val();
+
+					if (!xAxis || !yAxis) return;
+
+					// Get scale types and bases
+					const xScale = $('input[name="x-scale"]:checked').val();
+					const yScale = $('input[name="y-scale"]:checked').val();
+					const xBase = parseFloat($("#x-base").val()) || 10;
+					const yBase = parseFloat($("#y-base").val()) || 10;
+
+					// Group models by family
+					const modelFamilies = {};
+					data.forEach((model) => {
+						if (!modelFamilies[model.model_family]) {
+							modelFamilies[model.model_family] = {
+								points: [], // Store all points for sorting
+								name: model.model_family,
+								mode: "lines+markers",
+								type: "scatter",
+								hovertemplate: "%{text}<br>" +
+									"X: %{x}<br>" +
+									"Y: %{y}<br>" +
+									"<extra></extra>"
+							};
+						}
+						const x = getNestedValue(model, xAxis);
+						const y = getNestedValue(model, yAxis);
+						if (x !== undefined && y !== undefined) {
+							modelFamilies[model.model_family].points.push({
+								x: x,
+								y: y,
+								text: model.model_name
+							});
+						}
+					});
+
+					// Convert grouped points into sorted traces
+					const traces = Object.values(modelFamilies).map(family => {
+						// Sort points by x value
+						family.points.sort((a, b) => a.x - b.x);
+						
+						return {
+							x: family.points.map(p => p.x),
+							y: family.points.map(p => p.y),
+							text: family.points.map(p => p.text),
+							name: family.name,
+							mode: family.mode,
+							type: family.type,
+							hovertemplate: family.hovertemplate
+						};
+					});
+
+					const layout = {
+						title: "Model Performance Comparison",
+						xaxis: {
+							title: xAxis.split(".").pop().replace(/_/g, " ").toUpperCase(),
+							type: xScale,
+							...(xScale === 'log' && { 
+								tickformat: `.2f`,
+								tickmode: 'auto',
+								logbase: xBase
+							})
+						},
+						yaxis: {
+							title: yAxis.split(".").pop(),
+							type: yScale,
+							...(yScale === 'log' && { 
+								tickformat: `.2f`,
+								tickmode: 'auto',
+								logbase: yBase
+							})
+						},
+						hovermode: "closest",
+						showlegend: true
+					};
+
+					Plotly.newPlot("plot", traces, layout);
+				});
+			}
+
+			// Toggle base input visibility and add input event handlers
+			function updateBaseInputVisibility() {
+				const xBaseInput = $('#x-base');
+				const yBaseInput = $('#y-base');
+				
+				xBaseInput.toggleClass('visible', $('#x-log').is(':checked'));
+				yBaseInput.toggleClass('visible', $('#y-log').is(':checked'));
+				
+				// Add input event handlers
+				xBaseInput.off('input').on('input', updatePlot);
+				yBaseInput.off('input').on('input', updatePlot);
+			}
+
+			$(document).ready(function () {
+				populateAxisOptions();
+				
+				// Add event listeners
+				$("#x-axis, #y-axis").change(updatePlot);
+				$('input[name="x-scale"], input[name="y-scale"]').change(function() {
+					updateBaseInputVisibility();
+					updatePlot();
+				});
+				
+				// Initial setup
+				updateBaseInputVisibility();
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,39 @@
+{
+    "model_name": "LLaMA-3.2-3B-Instruct",
+    "model_family": "llama3.2",
+    "architecture": "LlamaForCausalLM",
+    "vision": false,
+    "inputs": [
+        "text"
+    ],
+    "outputs": [
+        "text"
+    ],
+    "parameters": {
+        "total_params": 3210000000,
+        "embedding_size": 3072,
+        "layers": 28,
+        "hidden_size": 3072,
+        "intermediate_size": 8192,
+        "attention_heads": 24,
+        "head_dimensions": 128,
+        "vocab_size": 128256
+    },
+    "benchmarks": {
+        "MMLU": 63.4,
+        "Open-rewrite eval": 40.1,
+        "TLDR9+": 19.0,
+        "IFEval": 77.4,
+        "GSM8K": 77.7,
+        "MATH": 48.0,
+        "ARC Challenge": 78.6,
+        "GPQA": 32.8,
+        "HellaSwag": 69.8,
+        "BFCL V2": 67.0,
+        "Nexus": 34.3,
+        "InfiniteBench/En.MC": 63.3,
+        "InfiniteBench/En.QA": 19.8,
+        "NIH/Multi-needle": 84.7,
+        "MGSM": 58.2
+    }
+}

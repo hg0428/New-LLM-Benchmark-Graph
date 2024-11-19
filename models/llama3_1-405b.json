@@ -1,0 +1,39 @@
+{
+    "model_name": "Llama3.1-405B",
+    "model_family": "llama3.1",
+    "architecture": "LlamaForCausalLM",
+    "vision": false,
+    "inputs": [
+        "text"
+    ],
+    "outputs": [
+        "text"
+    ],
+    "parameters": {
+        "total_params": 406000000000,
+        "embedding_size": 16384,
+        "layers": 126,
+        "hidden_size": 16384,
+        "intermediate_size": 53248,
+        "attention_heads": 128,
+        "head_dimensions": 128,
+        "vocab_size": 128256
+    },
+    "benchmarks": {
+        "MMLU": 88.6,
+        "MMLU PRO": 73.3,
+        "IFEval": 88.6,
+        "HumanEval": 89.0,
+        "MBPP EvalPlus": 88.6,
+        "GSM8K": 96.8,
+        "MATH": 73.8,
+        "ARC Challenge": 96.9,
+        "GPQA": 51.1,
+        "BFCL": 88.5,
+        "Nexus": 58.7,
+        "ZeroSCROLLS/QuALITY": 95.2,
+        "InfiniteBench/En.MC": 83.4,
+        "NIH/Multi-needle": 98.1,
+        "Multilingual MGSM": 91.6
+    }
+}

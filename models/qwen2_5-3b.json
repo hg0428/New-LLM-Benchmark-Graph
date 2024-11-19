@@ -1,0 +1,46 @@
+{
+    "model_name": "Qwen2.5-3B-Instruct",
+    "model_family": "qwen2.5",
+    "architecture": "Qwen2ForCausalLM",
+    "vision": false,
+    "inputs": [
+        "text"
+    ],
+    "outputs": [
+        "text"
+    ],
+    "parameters": {
+        "total_params": 3090000000,
+        "embedding_size": 2048,
+        "layers": 36,
+        "hidden_size": 2048,
+        "intermediate_size": 11008,
+        "attention_heads": 16,
+        "head_dimensions": 128,
+        "vocab_size": 151936
+    },
+    "benchmarks": {
+        "MMLU": 65.6,
+        "MMLU-Pro": 34.6,
+        "MMLU-redux": 63.7,
+        "BBH": 56.3,
+        "ARC Challenge": 56.5,
+        "TruthfulQA": 48.9,
+        "Winogrande": 71.1,
+        "HellaSwag": 74.6,
+        "GPQA": 26.3,
+        "Theoremqa": 27.4,
+        "MATH": 42.6,
+        "MMLU-stem": 62.5,
+        "GSM8K": 79.1,
+        "HumanEval": 42.1,
+        "HumanEval+": 36.0,
+        "MBPP": 57.1,
+        "MBPP+": 49.4,
+        "MultiPL-E": 41.2,
+        "Multi-Exam": 54.6,
+        "Multi-Understanding": 76.6,
+        "Multi-Mathematics": 48.9,
+        "Multi-Translation": 29.3
+    }
+}
