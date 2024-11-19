@@ -23,3 +23,9 @@ python app.py
 - Mistral models
 - Zamba2
 - Others
+
+## Other TODO:
+- Add a # of training tokens field to every model.
+
+## Disclaimer:
+I did not take into account whether the model used CoT on the benchmarks. Some did some didn't. It's just about impossible to find benchmarks that match up perfectly. Some were 5-shot while others were 1-shot or 0-shot. The benchmarks are not fair, but they can at least give us a rough idea for now. 
