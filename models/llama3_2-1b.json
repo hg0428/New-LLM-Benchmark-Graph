@@ -21,7 +21,7 @@
     },
     "benchmarks": {
         "MMLU": 49.3,
-        "Open-rewrite eval": 41.6,
+        "OpenRewrite-Eval": 41.6,
         "TLDR9+": 16.8,
         "IFEval": 59.5,
         "GSM8K": 44.4,

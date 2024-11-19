@@ -35,7 +35,7 @@ To add a new model, create a JSON file in the `models` directory with the follow
     "benchmarks": {
         "mmlu": 50.0,
         "HellaSwag": 80.0,
-        "arc_challenge": 45.0,
+        "ARC Challenge": 45.0,
         "TruthfulQA": 40.0
     }
 }

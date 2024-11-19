@@ -21,7 +21,7 @@
     },
     "benchmarks": {
         "MMLU": 79.7,
-        "MMLU-Pro": 51.2,
+        "MMLU Pro": 51.2,
         "MMLU-redux": 76.6,
         "BBH": 78.2,
         "ARC Challenge": 67.3,

@@ -21,10 +21,10 @@
     },
     "benchmarks": {
         "MMLU": 88.6,
-        "MMLU PRO": 73.3,
+        "MMLU Pro": 73.3,
         "IFEval": 88.6,
         "HumanEval": 89.0,
-        "MBPP EvalPlus": 88.6,
+        "MBPP+": 88.6,
         "GSM8K": 96.8,
         "MATH": 73.8,
         "ARC Challenge": 96.9,

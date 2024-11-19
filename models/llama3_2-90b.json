@@ -35,7 +35,7 @@
         "MGSM": 86.9,
         "IFEval": 87.5,
         "HumanEval": 80.5,
-        "MBPP EvalPlus": 86.0,
+        "MBPP+": 86.0,
         "GSM8K": 95.1,
         "ARC Challenge": 94.8,
         "BFCL": 84.8,

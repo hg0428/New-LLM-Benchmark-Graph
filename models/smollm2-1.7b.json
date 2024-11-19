@@ -26,7 +26,7 @@
         "HellaSwag": 66.1,
         "ARC Average": 51.7,
         "PIQA": 74.4,
-        "MMLU-Pro": 19.3,
+        "MMLU Pro": 19.3,
         "BBH": 32.2,
         "GSM8K": 48.2
     }
