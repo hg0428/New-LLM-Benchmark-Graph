@@ -240,26 +240,30 @@
 						xaxis: {
 							title: xAxis.split(".").pop().replace(/_/g, " ").toUpperCase(),
 							type: xScale,
-							...(xScale === 'log' && { 
-								tickformat: `.2f`,
-								tickmode: 'auto',
-								logbase: xBase
+							...(xScale === 'log' && {
+								dtick: Math.log10(xBase),
+								tickformat: "e",
+								exponentformat: "power"
 							})
 						},
 						yaxis: {
 							title: yAxis.split(".").pop(),
 							type: yScale,
-							...(yScale === 'log' && { 
-								tickformat: `.2f`,
-								tickmode: 'auto',
-								logbase: yBase
+							...(yScale === 'log' && {
+								dtick: Math.log10(yBase),
+								tickformat: "e",
+								exponentformat: "power"
 							})
 						},
 						hovermode: "closest",
 						showlegend: true
 					};
 
-					Plotly.newPlot("plot", traces, layout);
+					Plotly.newPlot("plot", traces, layout, {
+						responsive: true,
+						...(xScale === 'log' && { logBase: xBase }),
+						...(yScale === 'log' && { logBase: yBase })
+					});
 				});
 			}
 
@@ -268,12 +272,19 @@
 				const xBaseInput = $('#x-base');
 				const yBaseInput = $('#y-base');
 				
+				// Show/hide base inputs based on scale selection
 				xBaseInput.toggleClass('visible', $('#x-log').is(':checked'));
 				yBaseInput.toggleClass('visible', $('#y-log').is(':checked'));
 				
 				// Add input event handlers
-				xBaseInput.off('input').on('input', updatePlot);
-				yBaseInput.off('input').on('input', updatePlot);
+				xBaseInput.off('input').on('input', function() {
+					console.log('X base changed:', $(this).val());
+					updatePlot();
+				});
+				yBaseInput.off('input').on('input', function() {
+					console.log('Y base changed:', $(this).val());
+					updatePlot();
+				});
 			}
 
 			$(document).ready(function () {
@@ -288,6 +299,7 @@
 				
 				// Initial setup
 				updateBaseInputVisibility();
+				updatePlot();
 			});
 		</script>
 	</body>
