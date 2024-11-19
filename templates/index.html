@@ -28,20 +28,11 @@
 				flex: 1;
 				min-width: 200px;
 			}
-			.scale-controls {
+			.scale-control {
 				display: flex;
 				gap: 10px;
 				align-items: center;
 				margin-top: 10px;
-			}
-			.scale-controls input[type="number"] {
-				width: 60px;
-				padding: 4px;
-				border-radius: 4px;
-				border: 1px solid #ddd;
-			}
-			.scale-controls input[type="radio"] {
-				margin: 0;
 			}
 			select {
 				width: 100%;
@@ -54,20 +45,9 @@
 				margin-bottom: 5px;
 				font-weight: bold;
 			}
-			.radio-label {
-				font-weight: normal;
-				margin: 0;
-				display: inline;
-			}
 			#plot {
 				width: 100%;
 				height: 600px;
-			}
-			.base-input {
-				display: none;
-			}
-			.base-input.visible {
-				display: inline-block;
 			}
 		</style>
 	</head>
@@ -78,27 +58,17 @@
 				<div class="control-group">
 					<label for="x-axis">X-Axis:</label>
 					<select id="x-axis"></select>
-					<div class="scale-controls">
-						<span>Scale:</span>
-						<input type="radio" name="x-scale" value="linear" id="x-linear">
-						<label class="radio-label" for="x-linear">Linear</label>
-						<input type="radio" name="x-scale" value="log" id="x-log" checked>
-						<label class="radio-label" for="x-log">Log</label>
-						<input type="number" id="x-base" class="base-input visible" value="10" min="2" step="any">
-						<label class="radio-label" for="x-base">Base</label>
+					<div class="scale-control">
+						<label><input type="radio" name="x-scale" value="linear" checked> Linear</label>
+						<label><input type="radio" name="x-scale" value="log"> Log</label>
 					</div>
 				</div>
 				<div class="control-group">
 					<label for="y-axis">Y-Axis:</label>
 					<select id="y-axis"></select>
-					<div class="scale-controls">
-						<span>Scale:</span>
-						<input type="radio" name="y-scale" value="linear" id="y-linear" checked>
-						<label class="radio-label" for="y-linear">Linear</label>
-						<input type="radio" name="y-scale" value="log" id="y-log">
-						<label class="radio-label" for="y-log">Log</label>
-						<input type="number" id="y-base" class="base-input" value="10" min="2" step="any">
-						<label class="radio-label" for="y-base">Base</label>
+					<div class="scale-control">
+						<label><input type="radio" name="y-scale" value="linear" checked> Linear</label>
+						<label><input type="radio" name="y-scale" value="log"> Log</label>
 					</div>
 				</div>
 			</div>
@@ -124,58 +94,46 @@
 			}
 
             function populateAxisOptions() {
-                $.getJSON("/api/models", function(data) {
-                    const xAxis = $("#x-axis");
-                    const yAxis = $("#y-axis");
-                    
+                $.getJSON("/api/metrics", function (data) {
+                    const xSelect = $("#x-axis");
+                    const ySelect = $("#y-axis");
+
                     // Clear existing options
-                    xAxis.empty();
-                    yAxis.empty();
-                    
-                    // Get all unique parameter and benchmark keys
-                    const parameters = new Set();
-                    const benchmarks = new Set();
-                    
-                    data.forEach(model => {
-                        // Add parameters
-                        if (model.parameters) {
-                            Object.keys(model.parameters).forEach(param => parameters.add(param));
-                        }
-                        // Add benchmarks
-                        if (model.benchmarks) {
-                            Object.keys(model.benchmarks).forEach(benchmark => benchmarks.add(benchmark));
-                        }
-                    });
-                    
+                    xSelect.empty();
+                    ySelect.empty();
+
                     // Add parameter options to x-axis
-                    Array.from(parameters).sort().forEach(param => {
-                        xAxis.append(
-                            $("<option>", {
-                                value: `parameters.${param}`,
-                                text: param.replace(/_/g, " ").toUpperCase()
-                            })
-                        );
-                    });
-                    
+                    if (data.parameters) {
+                        const paramGroup = $("<optgroup label='Parameters'>");
+                        data.parameters.forEach(param => {
+                            paramGroup.append($("<option>").val(`parameters.${param}`).text(param));
+                        });
+                        xSelect.append(paramGroup);
+                    }
+
                     // Add benchmark options to y-axis
-                    Array.from(benchmarks).sort().forEach(benchmark => {
-                        yAxis.append(
-                            $("<option>", {
-                                value: `benchmarks.${benchmark}`,
-                                text: benchmark
-                            })
-                        );
-                    });
-                    
-                    // Select default options if available
-                    if (parameters.has("total_params")) {
-                        xAxis.val("parameters.total_params");
+                    if (data.benchmarks) {
+                        const benchGroup = $("<optgroup label='Benchmarks'>");
+                        // Add Average first
+                        if (data.benchmarks.includes('Average')) {
+                            benchGroup.append($("<option>").val('benchmarks.Average').text('Average'));
+                        }
+                        // Add other benchmarks
+                        data.benchmarks.filter(b => b !== 'Average').sort().forEach(benchmark => {
+                            benchGroup.append($("<option>").val(`benchmarks.${benchmark}`).text(benchmark));
+                        });
+                        ySelect.append(benchGroup);
                     }
-                    if (benchmarks.has("MMLU")) {
-                        yAxis.val("benchmarks.MMLU");
+
+                    // Set default selections
+                    if (xSelect.find("option").length > 0) {
+                        xSelect.val("parameters.total_params");
                     }
-                    
-                    // Trigger initial plot
+                    if (ySelect.find("option").length > 0) {
+                        ySelect.val("benchmarks.Average");
+                    }
+
+                    // Trigger plot update
                     updatePlot();
                 });
             }
@@ -187,18 +145,16 @@
 
 					if (!xAxis || !yAxis) return;
 
-					// Get scale types and bases
+					// Get scale types
 					const xScale = $('input[name="x-scale"]:checked').val();
 					const yScale = $('input[name="y-scale"]:checked').val();
-					const xBase = parseFloat($("#x-base").val()) || 10;
-					const yBase = parseFloat($("#y-base").val()) || 10;
 
 					// Group models by family
 					const modelFamilies = {};
 					data.forEach((model) => {
 						if (!modelFamilies[model.model_family]) {
 							modelFamilies[model.model_family] = {
-								points: [], // Store all points for sorting
+								points: [],
 								name: model.model_family,
 								mode: "lines+markers",
 								type: "scatter",
@@ -221,9 +177,7 @@
 
 					// Convert grouped points into sorted traces
 					const traces = Object.values(modelFamilies).map(family => {
-						// Sort points by x value
 						family.points.sort((a, b) => a.x - b.x);
-						
 						return {
 							x: family.points.map(p => p.x),
 							y: family.points.map(p => p.y),
@@ -239,51 +193,17 @@
 						title: "Model Performance Comparison",
 						xaxis: {
 							title: xAxis.split(".").pop().replace(/_/g, " ").toUpperCase(),
-							type: xScale,
-							...(xScale === 'log' && {
-								dtick: Math.log10(xBase),
-								tickformat: "e",
-								exponentformat: "power"
-							})
+							type: xScale
 						},
 						yaxis: {
 							title: yAxis.split(".").pop(),
-							type: yScale,
-							...(yScale === 'log' && {
-								dtick: Math.log10(yBase),
-								tickformat: "e",
-								exponentformat: "power"
-							})
+							type: yScale
 						},
 						hovermode: "closest",
 						showlegend: true
 					};
 
-					Plotly.newPlot("plot", traces, layout, {
-						responsive: true,
-						...(xScale === 'log' && { logBase: xBase }),
-						...(yScale === 'log' && { logBase: yBase })
-					});
-				});
-			}
-
-			// Toggle base input visibility and add input event handlers
-			function updateBaseInputVisibility() {
-				const xBaseInput = $('#x-base');
-				const yBaseInput = $('#y-base');
-				
-				// Show/hide base inputs based on scale selection
-				xBaseInput.toggleClass('visible', $('#x-log').is(':checked'));
-				yBaseInput.toggleClass('visible', $('#y-log').is(':checked'));
-				
-				// Add input event handlers
-				xBaseInput.off('input').on('input', function() {
-					console.log('X base changed:', $(this).val());
-					updatePlot();
-				});
-				yBaseInput.off('input').on('input', function() {
-					console.log('Y base changed:', $(this).val());
-					updatePlot();
+					Plotly.newPlot("plot", traces, layout);
 				});
 			}
 
@@ -292,14 +212,7 @@
 				
 				// Add event listeners
 				$("#x-axis, #y-axis").change(updatePlot);
-				$('input[name="x-scale"], input[name="y-scale"]').change(function() {
-					updateBaseInputVisibility();
-					updatePlot();
-				});
-				
-				// Initial setup
-				updateBaseInputVisibility();
-				updatePlot();
+				$('input[name="x-scale"], input[name="y-scale"]').change(updatePlot);
 			});
 		</script>
 	</body>
